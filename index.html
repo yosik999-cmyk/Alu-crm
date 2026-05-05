@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALU hair Boutique — CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}
+body{background:#f0f2f5;direction:rtl;min-height:100vh}
+:root{
+  --green:#075e54;--green-light:#128c7e;--green-btn:#25d366;
+  --hot:#993C1D;--hot-bg:#FAECE7;--warm:#854F0B;--warm-bg:#FAEEDA;
+  --cold:#185FA5;--cold-bg:#E6F1FB;--closed:#1D9E75;--closed-bg:#E1F5EE;
+  --border:#e0e0e0;--bg:#fff;--bg2:#f8f9fa;--text:#111;--text2:#666;--text3:#999
+}
+
+/* HEADER */
+.header{background:var(--green);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.header-title{font-size:16px;font-weight:600;color:#fff}
+.header-sub{font-size:11px;color:#9dc;margin-top:1px}
+.tab-bar{display:flex;gap:4px}
+.htab{padding:7px 14px;border-radius:20px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;border:none;background:transparent}
+.htab.active{background:rgba(255,255,255,.2);color:#fff;font-weight:500}
+
+/* VIEWS */
+.view{display:none;padding:16px;max-width:600px;margin:0 auto}
+.view.active{display:block}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.stat-n{font-size:24px;font-weight:600}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+.hot-n{color:var(--hot)}.warm-n{color:var(--warm)}.cold-n{color:var(--cold)}.closed-n{color:var(--closed)}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.filt{font-size:12px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.filt.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+/* LEAD CARDS */
+.lead-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);cursor:pointer;transition:transform .1s}
+.lead-card:active{transform:scale(.99)}
+.lc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.lc-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.av-hot{background:var(--hot-bg);color:var(--hot)}
+.av-warm{background:var(--warm-bg);color:var(--warm)}
+.av-cold{background:var(--cold-bg);color:var(--cold)}
+.av-closed{background:var(--closed-bg);color:var(--closed)}
+.lc-info{flex:1;min-width:0}
+.lc-name{font-size:15px;font-weight:600;color:var(--text)}
+.lc-sub{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;flex-shrink:0}
+.badge-hot{background:var(--hot-bg);color:var(--hot)}
+.badge-warm{background:var(--warm-bg);color:var(--warm)}
+.badge-cold{background:var(--cold-bg);color:var(--cold)}
+.badge-closed{background:var(--closed-bg);color:var(--closed)}
+.lc-bot{display:flex;justify-content:space-between;align-items:center}
+.lc-meta{font-size:11px;color:var(--text3)}
+.wa-btn{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--closed);background:var(--closed-bg);border:none;border-radius:20px;padding:5px 12px;cursor:pointer;font-weight:500;text-decoration:none}
+.followup-tag{font-size:11px;padding:2px 8px;border-radius:10px;background:#fff3cd;color:#856404;margin-top:6px;display:inline-block}
+
+/* ADD LEAD FAB */
+.fab{position:fixed;bottom:24px;left:24px;width:56px;height:56px;border-radius:50%;background:var(--green-btn);border:none;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;z-index:200}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:20px;width:90%;max-width:460px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:16px}
+.form-group{margin-bottom:12px}
+.form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;direction:rtl;outline:none;color:var(--text);background:#fff}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--green)}
+.form-textarea{resize:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-btns{display:flex;gap:10px;margin-top:16px}
+.btn-primary{flex:1;background:var(--green);color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;cursor:pointer;font-weight:500}
+.btn-secondary{flex:1;background:#f0f2f5;color:var(--text);border:none;border-radius:8px;padding:10px;font-size:14px;cursor:pointer}
+
+/* DETAIL VIEW */
+.detail-back{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--green);cursor:pointer;margin-bottom:16px;background:none;border:none;padding:0}
+.detail-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.detail-card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.detail-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #f0f0f0}
+.detail-row:last-child{border-bottom:none}
+.dr-label{color:var(--text2)}.dr-val{font-weight:500;color:var(--text);text-align:left;max-width:60%;word-break:break-word}
+.summary-box{background:#f8f9fa;border-radius:8px;padding:12px;font-size:12px;line-height:1.9;color:var(--text);white-space:pre-line;border:1px solid var(--border);font-family:monospace}
+.copy-btn{width:100%;background:var(--green);color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;cursor:pointer;margin-top:8px;font-weight:500}
+.status-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.st-btn{font-size:12px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:#f8f9fa;color:var(--text2);cursor:pointer}
+.st-btn.sel{background:var(--green);color:#fff;border-color:var(--green)}
+.price-row{display:flex;gap:8px;margin-top:8px}
+.price-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;direction:rtl;outline:none;color:var(--text)}
+.save-small{background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+.notes-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;direction:rtl;outline:none;color:var(--text);resize:none;margin-top:8px}
+
+/* BOT VIEW */
+.bot-wrap{max-width:420px;margin:0 auto}
+.phone-frame{background:#e5ddd5;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.topbar{background:var(--green);padding:10px 14px;display:flex;align-items:center;gap:10px}
+.tb-av{width:34px;height:34px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.tb-name{font-size:14px;font-weight:600;color:#fff}
+.tb-sub{font-size:10px;color:#9dc}
+.msgs{padding:12px;display:flex;flex-direction:column;gap:7px;min-height:420px;max-height:420px;overflow-y:auto}
+.brow{display:flex;flex-direction:column}
+.brow.bot{align-items:flex-start}.brow.user{align-items:flex-end}
+.bubble{max-width:86%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.6;color:#111;white-space:pre-line}
+.bubble.bot{background:#fff;border-top-left-radius:2px}
+.bubble.user{background:#dcf8c6;border-top-right-radius:2px}
+.bts{font-size:10px;color:#999;margin-top:2px}
+.bopts{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.bopt{font-size:12px;padding:6px 13px;border-radius:20px;border:1.5px solid var(--green);background:#fff;color:var(--green);cursor:pointer;font-weight:500}
+.bopt:active{background:#e0f2e9}
+.typing{display:flex;gap:4px;padding:10px 14px;background:#fff;border-radius:12px;align-self:flex-start;width:52px}
+.dot{width:6px;height:6px;border-radius:50%;background:#bbb;animation:bl 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.bot-inp{background:#f0f0f0;padding:8px 12px;display:flex;gap:8px;align-items:center}
+.bot-inp input{flex:1;border:none;border-radius:20px;padding:8px 14px;font-size:13px;background:#fff;outline:none;direction:rtl}
+.send-btn{width:36px;height:36px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.send-btn svg{width:17px;height:17px;fill:#fff}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.empty-sub{font-size:13px}
+
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">ALU</div>
+    <div>
+      <div class="header-title">Alu hair Boutique</div>
+      <div class="header-sub">מערכת ניהול לידים</div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="htab active" onclick="switchView('crm',this)">📋 לידים</button>
+    <button class="htab" onclick="switchView('bot',this)">💬 בוט</button>
+  </div>
+</div>
+
+<!-- CRM VIEW -->
+<div class="view active" id="view-crm">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-n hot-n" id="cnt-hot">0</div><div class="stat-l">חמים 🔥</div></div>
+    <div class="stat-card"><div class="stat-n warm-n" id="cnt-warm">0</div><div class="stat-l">פושרים</div></div>
+    <div class="stat-card"><div class="stat-n cold-n" id="cnt-cold">0</div><div class="stat-l">קרים</div></div>
+    <div class="stat-card"><div class="stat-n closed-n" id="cnt-closed">0</div><div class="stat-l">סגורים ✓</div></div>
+  </div>
+  <div class="filters">
+    <div class="filt active" onclick="setFilter('all',this)">הכל</div>
+    <div class="filt" onclick="setFilter('hot',this)">חמים 🔥</div>
+    <div class="filt" onclick="setFilter('warm',this)">פושרים</div>
+    <div class="filt" onclick="setFilter('cold',this)">קרים</div>
+    <div class="filt" onclick="setFilter('closed',this)">סגורים</div>
+    <div class="filt" onclick="setFilter('physical',this)">⚠️ אבחון פיזי</div>
+  </div>
+  <div id="leads-list"></div>
+</div>
+
+<!-- DETAIL VIEW -->
+<div class="view" id="view-detail">
+  <button class="detail-back" onclick="switchView('crm',null)">→ חזרה לרשימה</button>
+  <div id="detail-body"></div>
+</div>
+
+<!-- BOT VIEW -->
+<div class="view" id="view-bot">
+  <div class="bot-wrap">
+    <div class="phone-frame">
+      <div class="topbar">
+        <div class="tb-av">ALU</div>
+        <div><div class="tb-name">Alu hair Boutique</div><div class="tb-sub">עונה אוטומטית</div></div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="bot-inp">
+        <div class="send-btn" onclick="send()"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></div>
+        <input id="inp" placeholder="כתבי הודעה..." onkeydown="if(event.key==='Enter')send()"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()" title="הוסף ליד ידנית">+</button>
+
+<!-- ADD LEAD MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">➕ הוספת ליד ידנית</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">שם מלא *</label>
+        <input class="form-input" id="f-name" placeholder="שם הלקוחה"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">טלפון</label>
+        <input class="form-input" id="f-phone" placeholder="05X-XXXXXXX" dir="ltr"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">שירות מבוקש</label>
+        <select class="form-select" id="f-service">
+          <option value="">בחרי...</option>
+          <option>החלקה</option>
+          <option>גוונים / הבהרה</option>
+          <option>צבע</option>
+          <option>תספורת</option>
+          <option>טיפול משקם</option>
+          <option>תוספות שיער</option>
+          <option>פן</option>
+          <option>שאלה / אחר</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">מקור</label>
+        <select class="form-select" id="f-source">
+          <option value="">בחרי...</option>
+          <option>אינסטגרם</option>
+          <option>טיקטוק</option>
+          <option>פייסבוק</option>
+          <option>המלצה של חברה</option>
+          <option>גוגל</option>
+          <option>ממומן</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">זמינות</label>
+        <select class="form-select" id="f-timing">
+          <option value="">בחרי...</option>
+          <option>השבוע</option>
+          <option>בשבועיים הקרובים</option>
+          <option>עוד חודש</option>
+          <option>רק בודקת</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">סטטוס</label>
+        <select class="form-select" id="f-status">
+          <option value="hot">חם 🔥</option>
+          <option value="warm">פושר</option>
+          <option value="cold">קר</option>
+          <option value="physical">⚠️ אבחון פיזי</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">פרופיל כימי (12 חודשים)</label>
+      <input class="form-input" id="f-chem" placeholder="למשל: צבע + גוונים לפני 3 חודשים"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">הערות</label>
+      <textarea class="form-textarea" id="f-notes" rows="2" placeholder="הערות נוספות..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveNewLead()">שמור ליד</button>
+      <button class="btn-secondary" onclick="closeModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+let leads = JSON.parse(localStorage.getItem('alu_leads')||'[]');
+let currentFilter = 'all';
+
+function saveLeads(){ localStorage.setItem('alu_leads', JSON.stringify(leads)); }
+
+function getStatus(l){
+  if(l.redLine||l.manualStatus==='physical') return 'physical';
+  if(l.manualStatus) return l.manualStatus;
+  if(l.closed) return 'closed';
+  return l.status||'cold';
+}
+
+function initials(n){
+  if(!n) return '?';
+  const p = n.trim().split(' ');
+  return p.length>=2 ? p[0][0]+p[1][0] : p[0].slice(0,2);
+}
+
+function calcFollowUp(l){
+  if(l.redLine||l.manualStatus==='physical') return 'מיד — תיאום אבחון פיזי';
+  const t = l.timing||'';
+  if(t==='השבוע') return 'עוד יומיים אם לא קבעה';
+  if(t==='בשבועיים הקרובים') return 'עוד 4 ימים';
+  if(t==='עוד חודש') return 'עוד 3 שבועות';
+  if(l.hakalaWhen==='לפני יותר מ-6 חודשים') return 'מיידי — כבר זמן לחידוש החלקה';
+  if(l.hakalaWhen==='לפני 3-6 חודשים') return 'עוד חודש-חודשיים לחידוש';
+  return 'עוד שבוע אם לא חזרה';
+}
+
+function calcLeadStatus(l){
+  if(l.redLine||l.manualStatus==='physical') return 'אבחון פיזי נדרש';
+  const t = l.timing||'';
+  if(t==='השבוע'||t==='בשבועיים הקרובים') return 'מוכנה להצעה';
+  return 'חדשה';
+}
+
+function buildChemProfile(l){
+  const parts=[];
+  if(l.chemProfile) return l.chemProfile;
+  if(l.hakalaHistory==='כן') parts.push(`החלקה (${l.hakalaWhen||'לא ידוע מתי'})`);
+  if(l.govHistory==='כן') parts.push(`גוונים (${l.govWhen||'לא ידוע מתי'})`);
+  if(l.colorHistory==='כן'||l.colorType) parts.push(`צבע${l.colorType?' — '+l.colorType:''}${l.colorFreq?' כל '+l.colorFreq:''}`);
+  if(l.existingTreatments&&!l.existingTreatments.includes('טבעי')) parts.push(l.existingTreatments);
+  return parts.length ? parts.join(' | ') : 'שיער טבעי / לא ידוע';
+}
+
+function buildSummary(l){
+  return `📋 סיכום ליד — Alu hair Boutique
+━━━━━━━━━━━━━━━━━━━
+שם: ${l.name||'לא סופק'}
+טלפון: ${l.phone||'—'}
+שירות מבוקש: ${l.service||'—'}
+סטטוס: ${calcLeadStatus(l)}
+━━━━━━━━━━━━━━━━━━━
+פרופיל כימי (12 חודשים):
+${buildChemProfile(l)}
+━━━━━━━━━━━━━━━━━━━
+רגישות: ${l.redLine?'⚠️ שיער עם עומס כימי גבוה — חובה אבחון':'שיער מטופל — לבדוק בריאות'}
+מקור: ${l.source||'לא ידוע'}
+זמינות: ${l.timing||'לא ידוע'}
+━━━━━━━━━━━━━━━━━━━
+📅 פולו-אפ מומלץ: ${calcFollowUp(l)}`;
+}
+
+// ── RENDER CRM ────────────────────────────────────────
+function renderCRM(){
+  const c = {hot:0,warm:0,cold:0,closed:0,physical:0};
+  leads.forEach(l => { const s=getStatus(l); if(c[s]!==undefined) c[s]++; else c['cold']++; });
+  document.getElementById('cnt-hot').textContent = c.hot||0;
+  document.getElementById('cnt-warm').textContent = c.warm||0;
+  document.getElementById('cnt-cold').textContent = c.cold||0;
+  document.getElementById('cnt-closed').textContent = c.closed||0;
+
+  const list = document.getElementById('leads-list');
+  let filtered = leads;
+  if(currentFilter!=='all') filtered = leads.filter(l=>getStatus(l)===currentFilter);
+  filtered.sort((a,b)=>{
+    const order={physical:0,hot:1,warm:2,cold:3,closed:4};
+    return (order[getStatus(a)]||3)-(order[getStatus(b)]||3);
+  });
+
+  if(!filtered.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">אין לידים עדיין</div><div class="empty-sub">לחצי על + להוספת ליד ידנית<br>או השתמשי בבוט לקבלת פנייה</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((l,i)=>{
+    const st = getStatus(l);
+    const idx = leads.indexOf(l);
+    const label = st==='hot'?'חם 🔥':st==='warm'?'פושר':st==='closed'?'סגור ✓':st==='physical'?'⚠️ אבחון':'קר';
+    const fu = calcFollowUp(l);
+    return `<div class="lead-card" onclick="openDetail(${idx})">
+      <div class="lc-top">
+        <div class="lc-av av-${st==='physical'?'hot':st}">${initials(l.name||'?')}</div>
+        <div class="lc-info">
+          <div class="lc-name">${l.name||'לא סופק'}</div>
+          <div class="lc-sub">${l.service||''} ${l.existingTreatments&&!l.existingTreatments.includes('טבעי')?'· '+l.existingTreatments:''}</div>
+        </div>
+        <span class="badge badge-${st==='physical'?'hot':st}">${label}</span>
+      </div>
+      <div class="lc-bot">
+        <span class="lc-meta">${l.date||''} · ${l.source||'—'}</span>
+        ${l.phone?`<a class="wa-btn" href="https://wa.me/972${l.phone.replace(/^0/,'').replace(/-/,'')}" target="_blank">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#1D9E75"><path d="M17.47 14.38c-.27-.13-1.58-.77-1.82-.86-.24-.09-.42-.13-.6.14-.18.27-.69.86-.84 1.04-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.17-1.34-.8-.71-1.34-1.59-1.5-1.86-.16-.27-.02-.41.12-.54.12-.12.27-.31.4-.46.14-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.06-.13-.6-1.44-.82-1.97-.22-.53-.44-.46-.6-.47h-.51c-.18 0-.47.07-.71.34-.24.27-.93.91-.93 2.22s.95 2.58 1.08 2.76c.13.18 1.87 2.85 4.53 3.99.63.27 1.12.43 1.5.55.63.2 1.2.17 1.65.1.5-.08 1.54-.63 1.76-1.24.22-.61.22-1.13.15-1.24-.07-.1-.24-.16-.51-.29z"/><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.09-1.34C8.47 21.52 10.21 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.66 0-3.2-.46-4.52-1.26l-.32-.19-3.03.8.81-2.96-.21-.33C3.46 15.2 3 13.66 3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9z"/></svg>
+          וואטסאפ
+        </a>`:''}
+      </div>
+      <span class="followup-tag">📅 ${fu}</span>
+    </div>`;
+  }).join('');
+}
+
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.filt').forEach(e=>e.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderCRM();
+}
+
+// ── DETAIL ────────────────────────────────────────────
+function openDetail(idx){
+  const l = leads[idx];
+  const st = getStatus(l);
+  const summary = buildSummary(l);
+  const fields = [
+    ['שם',l.name],['טלפון',l.phone],['שירות',l.service],
+    ['מה על השיער',l.existingTreatments],['החלקה בעבר',l.hakalaHistory],
+    ['מתי החלקה',l.hakalaWhen],['סוג החלקה',l.hakalaType],
+    ['גוונים בעבר',l.govHistory],['מתי גוונים',l.govWhen],
+    ['סוג צבע',l.colorType],['תדירות צבע',l.colorFreq],
+    ['תוספות בעבר',l.tospHistory],['שיטת תוספות',l.tospMethod],
+    ['כמות שיער',l.tospGram],['היסטוריה',l.hairHistory],
+    ['טיפול אחרון',l.lastTreatment],['שאלה',l.question],
+    ['זמינות',l.timing],['מקור',l.source],['תאריך',l.date+' '+(l.time||'')]
+  ].filter(r=>r[1]);
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="lc-av av-${st==='physical'?'hot':st}" style="width:48px;height:48px;font-size:15px">${initials(l.name||'?')}</div>
+        <div>
+          <div style="font-size:17px;font-weight:700">${l.name||'לא סופק'}</div>
+          <div style="font-size:12px;color:var(--text2)">${l.service||''} · ${l.date||''}</div>
+        </div>
+        <span class="badge badge-${st==='physical'?'hot':st}" style="margin-right:auto">${st==='hot'?'חם 🔥':st==='warm'?'פושר':st==='closed'?'סגור ✓':st==='physical'?'⚠️ אבחון פיזי':'קר'}</span>
+      </div>
+      ${l.phone?`<a class="wa-btn" href="https://wa.me/972${l.phone.replace(/^0/,'').replace(/-/,'')}" target="_blank" style="display:inline-flex;margin-bottom:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#1D9E75"><path d="M17.47 14.38c-.27-.13-1.58-.77-1.82-.86-.24-.09-.42-.13-.6.14-.18.27-.69.86-.84 1.04-.16.18-.31.2-.58.07-.27-.13-1.14-.42-2.17-1.34-.8-.71-1.34-1.59-1.5-1.86-.16-.27-.02-.41.12-.54.12-.12.27-.31.4-.46.14-.16.18-.27.27-.45.09-.18.04-.34-.02-.47-.06-.13-.6-1.44-.82-1.97-.22-.53-.44-.46-.6-.47h-.51c-.18 0-.47.07-.71.34-.24.27-.93.91-.93 2.22s.95 2.58 1.08 2.76c.13.18 1.87 2.85 4.53 3.99.63.27 1.12.43 1.5.55.63.2 1.2.17 1.65.1.5-.08 1.54-.63 1.76-1.24.22-.61.22-1.13.15-1.24-.07-.1-.24-.16-.51-.29z"/><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.07L2 22l5.09-1.34C8.47 21.52 10.21 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.66 0-3.2-.46-4.52-1.26l-.32-.19-3.03.8.81-2.96-.21-.33C3.46 15.2 3 13.66 3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9z"/></svg>
+        פתח וואטסאפ
+      </a>`:''}
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-title">📋 סיכום CRM — להעתקה</div>
+      <div class="summary-box" id="sum-${idx}">${summary}</div>
+      <button class="copy-btn" onclick="copySummary(${idx})">📋 העתק סיכום ל-CRM</button>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-title">פרטים מלאים</div>
+      ${fields.map(r=>`<div class="detail-row"><span class="dr-label">${r[0]}</span><span class="dr-val">${r[1]}</span></div>`).join('')}
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-title">שינוי סטטוס</div>
+      <div class="status-row">
+        ${[['hot','חם 🔥'],['warm','פושר'],['cold','קר'],['physical','⚠️ אבחון פיזי'],['closed','סגור ✓']].map(([s,label])=>`
+          <button class="st-btn${getStatus(l)===s?' sel':''}" onclick="setStatus(${idx},'${s}')">${label}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-title">הצעת מחיר (פנימי בלבד)</div>
+      <div class="price-row">
+        <input class="price-input" id="pinp-${idx}" placeholder="₪ הכניסי מחיר..." value="${l.price||''}"/>
+        <button class="save-small" onclick="saveField(${idx},'price','pinp-${idx}',this)">שמור</button>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-title">הערות פנימיות</div>
+      <textarea class="notes-input" id="ninp-${idx}" rows="3" placeholder="הערות...">${l.notes||''}</textarea>
+      <button class="save-small" style="margin-top:8px;width:100%" onclick="saveField(${idx},'notes','ninp-${idx}',this)">שמור הערות</button>
+    </div>
+
+    <div class="detail-card">
+      <button class="btn-secondary" style="width:100%;color:#c00" onclick="deleteLead(${idx})">🗑️ מחק ליד</button>
+    </div>`;
+
+  switchView('detail', null);
+}
+
+function setStatus(idx,st){
+  leads[idx].manualStatus=st;
+  leads[idx].closed=(st==='closed');
+  saveLeads();
+  openDetail(idx);
+  renderCRM();
+}
+
+function saveField(idx,field,inputId,btn){
+  leads[idx][field]=document.getElementById(inputId).value;
+  saveLeads();
+  btn.textContent='נשמר ✓';
+  setTimeout(()=>btn.textContent='שמור',2000);
+}
+
+function copySummary(idx){
+  const txt=document.getElementById('sum-'+idx).textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=event.target;btn.textContent='✓ הועתק!';
+    setTimeout(()=>btn.textContent='📋 העתק סיכום ל-CRM',2000);
+  }).catch(()=>alert(txt));
+}
+
+function deleteLead(idx){
+  if(confirm('למחוק את הליד?')){
+    leads.splice(idx,1);
+    saveLeads();
+    switchView('crm',null);
+    renderCRM();
+  }
+}
+
+// ── ADD LEAD MODAL ────────────────────────────────────
+function openAddModal(){document.getElementById('add-modal').classList.add('open');}
+function closeModal(){document.getElementById('add-modal').classList.remove('open');}
+
+function saveNewLead(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('נא להכניס שם');return;}
+  const l={
+    name,phone:document.getElementById('f-phone').value.trim(),
+    service:document.getElementById('f-service').value,
+    source:document.getElementById('f-source').value,
+    timing:document.getElementById('f-timing').value,
+    status:document.getElementById('f-status').value,
+    chemProfile:document.getElementById('f-chem').value,
+    notes:document.getElementById('f-notes').value,
+    id:Date.now(),manualStatus:null,closed:false,
+    date:new Date().toLocaleDateString('he-IL'),
+    time:new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}),
+    price:''
+  };
+  if(l.status==='physical') l.redLine=true;
+  leads.unshift(l);
+  saveLeads();
+  closeModal();
+  renderCRM();
+  ['f-name','f-phone','f-chem','f-notes'].forEach(id=>document.getElementById(id).value='');
+  ['f-service','f-source','f-timing'].forEach(id=>document.getElementById(id).selectedIndex=0);
+}
+
+// ── BOT ───────────────────────────────────────────────
+const msgsEl=document.getElementById('msgs'),inpEl=document.getElementById('inp');
+let botLead={},botStep=0,botWait=false,botFlow=[],botDone=false,botName='',botNameAsked=false;
+const u={t:'user'};
+function bb(text,opts,save,flag){return{t:'bot',text,opts:opts||[],save,flag};}
+const FDONE='done';
+const TEAM='צוות ALU';
+const FINAL=`רשמנו לפנינו את כל הפרטים המקצועיים 💎\n\n${TEAM} יחזרו אליך בקרוב עם הצעת מחיר מדויקת וקביעת תור ❤️`;
+const RED=`חשוב לנו מאוד הדיוק והבריאות של השיער שלך ❤️\n\nשילוב של שלושה טיפולים כימיים יחד דורש אבחון פיזי מוקדם — כדי שנוכל להתאים לך בדיוק את אחד מ-15 הפרוטוקולים שלנו ולהבטיח תוצאה מושלמת ובריאה.\n\nשלחי לנו תמונה של השיער שלך ו${TEAM} יחזרו אליך לתיאום אבחון ❤️`;
+const TQ=bb('מתי בערך את מחפשת להגיע אלינו?',['השבוע','בשבועיים הקרובים','עוד חודש','רק בודקת'],'timing');
+const SQ=bb('ואיך הגעת אלינו? 😊',['אינסטגרם','טיקטוק','פייסבוק','המלצה של חברה'],'source');
+const NQ=bb('ואיך קוראים לך? 🙏',[],'name');
+const H_NO_H=['כן, יש לי גוונים','כן, יש לי צבע','יש לי גם גוונים וגם צבע','לא, שיער טבעי'];
+const H_NO_G=['כן, יש לי צבע','כן, יש לי החלקה','יש לי גם צבע וגם החלקה','לא, שיער טבעי'];
+const H_NO_C=['כן, יש לי גוונים','כן, יש לי החלקה','יש לי גם גוונים וגם החלקה','לא, שיער טבעי'];
+
+const botFlows={
+  'החלקה':[
+    bb('אצלנו יותר מ-15 סוגי החלקות שמותאמות אישית לסוג השיער שלך ✨\n\nמבצעים אבחון מדויק לפני כל טיפול 💎\n\nעשית החלקה בעבר?',['כן','לא, זו הפעם הראשונה'],'hakalaHistory'),u,
+    bb('__hakala_when__',[],'hakalaWhen'),u,
+    bb('מה את מחפשת הפעם?',['חידוש שורשים','החלקה מלאה'],'hakalaType'),u,
+    {t:'bot',text:'__hist_no_hakala__',opts:[],save:'existingTreatments',flag:'cr'},u,
+    bb('__color_when__',[],'colorWhen'),u,
+    NQ,u,TQ,u,SQ,u,
+    bb('תודה! 🙏\n\nשלחי תמונה של השיער שלך באור יום 📸 + תמונת השראה של מה שאת חולמת עליו.\n\n'+FINAL,[],null,FDONE)
+  ],
+  'גוונים / הבהרה':[
+    bb('אנחנו עובדים עם אחוזי חמצן נמוכים וטכניקות הבהרה מבוקרות — תוך שמירה מלאה על בריאות סיב השערה ✨\n\nעשית גוונים בעבר?',['כן','לא, זו הפעם הראשונה'],'govHistory'),u,
+    bb('__gov_when__',[],'govWhen'),u,
+    {t:'bot',text:'__hist_no_gov__',opts:[],save:'existingTreatments',flag:'cr'},u,
+    NQ,u,TQ,u,SQ,u,
+    bb('תודה! 🙏\n\nשלחי שתי תמונות 📸\n1. השיער שלך כרגע באור יום\n2. תמונת השראה של הגוונים שאת חולמת עליהם\n\n'+FINAL,[],null,FDONE)
+  ],
+  'צבע':[
+    bb('שמחים שפנית! 💎\n\nמה סוג הצבע שאת מחפשת?',['כיסוי שיבה / שורשים','צבע מלא','שינוי גוון'],'colorType'),u,
+    bb('עשית צבע בעבר?',['כן','לא, זו הפעם הראשונה'],'colorHistory'),u,
+    bb('__color_freq__',[],'colorFreq'),u,
+    {t:'bot',text:'__hist_no_color__',opts:[],save:'existingTreatments',flag:'cr'},u,
+    NQ,u,TQ,u,SQ,u,
+    bb('תודה! 🙏\n\nשלחי תמונה של השיער שלך באור יום 📸\n\n'+FINAL,[],null,FDONE)
+  ],
+  'תוספות שיער':[
+    bb('אנחנו עובדים בשיטת צמידי שיער — ללא הדבקות וללא חום, עם מראה טבעי לחלוטין 💎\n\nעשית תוספות שיער בעבר?',['כן','לא, זו הפעם הראשונה'],'tospHistory'),u,
+    bb('__tosp_method__',[],'tospMethod'),u,
+    bb('כמה גרם שיער את חושבת שאת צריכה?',['עד 100 גרם','100–200 גרם','200–300 גרם','צריכה ייעוץ'],'tospGram'),u,
+    NQ,u,TQ,u,SQ,u,
+    bb('תודה! 🙏\n\nשלחי תמונה של השיער שלך כרגע באור יום 📸\n\n'+FINAL,[],null,FDONE)
+  ],
+  'תספורת':[NQ,u,TQ,u,SQ,u,bb('תודה! 🙏\n\nשלחי תמונת השראה של התספורת שאת רוצה 📸\n\n'+FINAL,[],null,FDONE)],
+  'טיפול משקם':[
+    bb('יש אצלנו מגוון טיפולי שיקום על בסיס אורגני 💎\n\nמה ההיסטוריה של השיער שלך ב-12 החודשים האחרונים?',
+    ['גוונים בלבד','צבע בלבד','החלקה בלבד','גוונים + צבע','גוונים + החלקה','צבע + החלקה','שיער טבעי'],'hairHistory'),u,
+    bb('מתי עשית את הטיפול האחרון?',['לפני פחות מ-3 חודשים','לפני 3-6 חודשים','לפני יותר מ-6 חודשים','לא זוכרת'],'lastTreatment'),u,
+    NQ,u,TQ,u,SQ,u,
+    bb('תודה! 🙏\n\nשלחי תמונה של השיער שלך 📸\n\n'+FINAL,[],null,FDONE)
+  ],
+  'שאלה / אחר':[
+    bb('כמובן, שמחים לעזור! 😊\n\nמה השאלה שלך?',[],'question'),u,
+    NQ,u,SQ,u,
+    bb(`תודה רבה ❤️\n\n${TEAM} יחזרו אליך בהקדם.\n\nמוזמנת להציץ בעבודות שלנו ✨\nhttps://www.instagram.com/alu_by_antonio_lucia/`,[],null,FDONE)
+  ]
+};
+
+function needsPhysical(){
+  const svc=botLead.service||'',ex=botLead.existingTreatments||'';
+  const hG=ex.includes('גוונים'),hC=ex.includes('צבע'),hH=ex.includes('החלקה');
+  const cnt=[hG,hC,hH].filter(Boolean).length;
+  if(cnt<2) return false;
+  if(svc==='החלקה'&&!hH) return true;
+  if(svc==='גוונים / הבהרה'&&!hG) return true;
+  if(svc==='צבע'&&!hC) return true;
+  return false;
+}
+
+function resolveBotText(s){
+  const sk='__SKIP__',t=s.text;
+  if(t==='__hist_no_hakala__') return 'יש לך גם גוונים או צבע על השיער?';
+  if(t==='__hist_no_gov__') return 'יש לך גם צבע או החלקה על השיער?';
+  if(t==='__hist_no_color__') return 'יש לך גם גוונים או החלקה על השיער?';
+  if(t.includes('__hakala_when__')) return botLead.hakalaHistory==='לא, זו הפעם הראשונה'?sk:'מתי עשית את ההחלקה האחרונה?';
+  if(t.includes('__color_when__')) return (botLead.existingTreatments&&botLead.existingTreatments.includes('טבעי'))?sk:'מתי עשית את הצבע/גוונים האחרון?';
+  if(t.includes('__gov_when__')) return botLead.govHistory==='לא, זו הפעם הראשונה'?sk:'מתי עשית את הגוונים האחרונים?';
+  if(t.includes('__color_freq__')) return botLead.colorHistory==='לא, זו הפעם הראשונה'?sk:'כל כמה זמן את עושה צבע?';
+  if(t.includes('__tosp_method__')) return botLead.tospHistory==='לא, זו הפעם הראשונה'?sk:'באיזה שיטה עשית תוספות בעבר?';
+  return t;
+}
+
+function getBotOpts(s){
+  const t=s.text;
+  if(t==='__hist_no_hakala__') return H_NO_H;
+  if(t==='__hist_no_gov__') return H_NO_G;
+  if(t==='__hist_no_color__') return H_NO_C;
+  if(t.includes('__hakala_when__')||t.includes('__color_when__')||t.includes('__gov_when__'))
+    return ['לפני פחות מ-3 חודשים','לפני 3-6 חודשים','לפני יותר מ-6 חודשים'];
+  if(t.includes('__color_freq__')) return ['כל חודש-חודשיים','כל 3-4 חודשים','כל חצי שנה'];
+  if(t.includes('__tosp_method__')) return ['צמידים','הדבקה','קליפסים','שיטה אחרת'];
+  return s.opts||[];
+}
+
+function bnow(){return new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});}
+function addTyping(){const d=document.createElement('div');d.className='typing';d.id='typ';d.innerHTML='<div class="dot"></div><div class="dot"></div><div class="dot"></div>';msgsEl.appendChild(d);msgsEl.scrollTop=msgsEl.scrollHeight;}
+function removeTyping(){const t=document.getElementById('typ');if(t)t.remove();}
+
+function addMsg(from,text,opts){
+  if(!text)return;
+  const row=document.createElement('div');row.className='brow '+from;
+  const bub=document.createElement('div');bub.className='bubble '+from;bub.textContent=text;row.appendChild(bub);
+  const ts=document.createElement('div');ts.className='bts';ts.textContent=bnow();row.appendChild(ts);
+  if(opts&&opts.length){
+    const od=document.createElement('div');od.className='bopts';
+    opts.forEach(o=>{const btn=document.createElement('button');btn.className='bopt';btn.textContent=o;btn.onclick=()=>{inpEl.value=o;send();};od.appendChild(btn);});
+    row.appendChild(od);
+  }
+  msgsEl.appendChild(row);msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+
+function botSaveLead(){
+  const score=calcBotScore(botLead);
+  const entry={...botLead,id:Date.now(),
+    status:score>=6?'hot':score>=4?'warm':'cold',
+    manualStatus:null,closed:false,
+    date:new Date().toLocaleDateString('he-IL'),
+    time:bnow(),price:'',notes:''};
+  leads.unshift(entry);
+  saveLeads();
+  renderCRM();
+}
+
+function calcBotScore(l){
+  let s=0;
+  if(['החלקה','גוונים / הבהרה','תוספות שיער'].includes(l.service))s+=2;else s+=1;
+  if(l.timing==='השבוע')s+=3;else if(l.timing==='בשבועיים הקרובים')s+=2;else if(l.timing==='עוד חודש')s+=1;
+  if(l.source&&l.source.includes('המלצה'))s+=2;else if(l.source)s+=1;
+  return s;
+}
+
+function nextBot(){
+  if(botDone||botStep>=botFlow.length)return;
+  const s=botFlow[botStep];
+  if(s.t==='bot'){
+    if(s.flag==='cr'&&needsPhysical()){
+      botDone=true;botLead.redLine=true;
+      addTyping();setTimeout(()=>{removeTyping();addMsg('bot',RED,[]);botSaveLead();},950);return;
+    }
+    addTyping();
+    setTimeout(()=>{
+      removeTyping();
+      const txt=resolveBotText(s);
+      if(txt==='__SKIP__'){botStep++;if(botStep<botFlow.length&&botFlow[botStep].t==='user')botStep++;setTimeout(nextBot,80);return;}
+      addMsg('bot',txt,getBotOpts(s));
+      if(s.flag===FDONE)botSaveLead();
+      botStep++;
+      if(botStep<botFlow.length&&botFlow[botStep].t==='user')botWait=true;
+      else if(botStep<botFlow.length)setTimeout(nextBot,500);
+    },950);
+  }
+}
+
+function send(){
+  const v=inpEl.value.trim();if(!v)return;
+  inpEl.value='';addMsg('user',v,[]);
+  if(!botFlow.length){
+    if(!botNameAsked){
+      botNameAsked=true;
+      const svcs=['החלקה','גוונים','צבע','תספורת','טיפול','תוספות','שאלה','פן'];
+      const isSvc=svcs.some(s=>v.includes(s));
+      if(!isSvc){
+        botName=v.split(' ')[0];botLead={name:v};
+        addTyping();
+        setTimeout(()=>{
+          removeTyping();
+          addMsg('bot',`היי ${botName}, איזה כיף שפנית אלינו! ברוכה הבאה ✨\n\nמה מביא אותך אלינו היום?`,
+          ['החלקה','גוונים / הבהרה','צבע','תספורת','טיפול משקם','תוספות שיער','שאלה / אחר']);
+        },800);
+        return;
+      }
+    }
+    botLead.service=v;
+    botFlow=botFlows[v]||botFlows['שאלה / אחר'];
+    botStep=0;botWait=false;botDone=false;
+    setTimeout(nextBot,400);return;
+  }
+  if(botWait){
+    const prev=botFlow[botStep-1];
+    if(prev&&prev.save){
+      botLead[prev.save]=v;
+      if(prev.save==='name')botName=v.split(' ')[0];
+      if(prev.save==='existingTreatments'&&needsPhysical()){
+        botDone=true;botLead.redLine=true;
+        botWait=false;botStep++;
+        addTyping();setTimeout(()=>{removeTyping();addMsg('bot',RED,[]);botSaveLead();},950);return;
+      }
+    }
+    botWait=false;botStep++;setTimeout(nextBot,400);
+  }
+}
+
+// ── VIEWS ─────────────────────────────────────────────
+function switchView(name,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  else{
+    const map={crm:0,detail:0,bot:1};
+    const tabs=document.querySelectorAll('.htab');
+    if(tabs[map[name]])tabs[map[name]].classList.add('active');
+  }
+  if(name==='crm')renderCRM();
+  document.querySelector('.fab').style.display=(name==='crm')?'flex':'none';
+}
+
+// ── INIT ──────────────────────────────────────────────
+renderCRM();
+
+addTyping();
+setTimeout(()=>{
+  removeTyping();
+  addMsg('bot','היי! ברוכה הבאה ל־Alu hair Boutique ✨\n\nאיך קוראים לך?',[]);
+},900);
+</script>
+</body>
+</html>
